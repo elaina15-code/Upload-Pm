@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Uploader • DansFaye Lee</title>
+    <!-- Font & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 30%, #0b1120, #030712);
+            padding: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            max-width: 780px;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 2.5rem;
+            padding: 2.5rem 2.2rem;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.02);
+            transition: all 0.25s ease;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #e2e8f0, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
+        }
+
+        .badge i {
+            margin-right: 6px;
+            color: #38bdf8;
+        }
+
+        .drop-zone {
+            background: rgba(30, 41, 59, 0.4);
+            border: 2px dashed rgba(148, 163, 184, 0.2);
+            border-radius: 2rem;
+            padding: 2.8rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s ease;
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.05);
+            box-shadow: 0 0 30px -10px rgba(56, 189, 248, 0.15);
+        }
+
+        .drop-zone i {
+            font-size: 2.8rem;
+            color: #38bdf8;
+            margin-bottom: 0.6rem;
+            opacity: 0.8;
+        }
+
+        .drop-zone p {
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .drop-zone span {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 1.2rem 0 1.8rem 0;
+            min-height: 40px;
+        }
+
+        .file-tag {
+            background: rgba(51, 65, 85, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 0.4rem 1rem 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .file-tag i {
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.15s;
+        }
+
+        .file-tag i:hover {
+            color: #ef4444;
+            transform: scale(1.2);
+        }
+
+        .bot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin: 1.8rem 0 2rem 0;
+        }
+
+        .bot-card {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 1.5rem;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            transition: 0.2s;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            position: relative;
+        }
+
+        .bot-card:hover {
+            background: rgba(51, 65, 85, 0.4);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .bot-card.selected {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.08);
+            box-shadow: 0 0 20px -8px rgba(56, 189, 248, 0.15);
+        }
+
+        .bot-card .bot-icon {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+
+        .bot-card .bot-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .bot-card .bot-token {
+            font-size: 0.55rem;
+            color: #64748b;
+            margin-top: 3px;
+            word-break: break-all;
+            padding: 0 4px;
+        }
+
+        .bot-card .check-mark {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            color: #38bdf8;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: 0.15s;
+        }
+
+        .bot-card.selected .check-mark {
+            opacity: 1;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            border: none;
+            padding: 1rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+            box-shadow: 0 10px 20px -10px #1e3a8a;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+        }
+
+        .btn-primary i {
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transform: scale(1.01);
+            box-shadow: 0 15px 30px -12px #1e3a8a;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.7rem;
+            border-radius: 40px;
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+            backdrop-filter: blur(4px);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(71, 85, 105, 0.4);
+            color: #f1f5f9;
+        }
+
+        .status-box {
+            margin-top: 1.5rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1.2rem;
+            background: rgba(15, 23, 42, 0.4);
+            border-left: 3px solid #38bdf8;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: #e2e8f0;
+            min-height: 54px;
+            backdrop-filter: blur(4px);
+        }
+
+        .status-box .status-icon {
+            color: #38bdf8;
+        }
+
+        .status-box .status-text {
+            flex: 1;
+        }
+
+        .status-box .status-sub {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .footer-credit {
+            margin-top: 1.8rem;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #475569;
+            letter-spacing: 0.3px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 1.5rem;
+        }
+
+        .footer-credit i {
+            color: #38bdf8;
+            margin: 0 4px;
+        }
+
+        @media (max-width: 550px) {
+            .glass-card {
+                padding: 1.8rem 1.2rem;
+                border-radius: 2rem;
+            }
+            .bot-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .bot-card .bot-name {
+                font-size: 0.7rem;
+            }
+            .bot-card .bot-token {
+                font-size: 0.45rem;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* animasi */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1><i class="fas fa-paper-plane" style="margin-right: 10px; color: #38bdf8; -webkit-text-fill-color: #38bdf8;"></i>TeleUpload</h1>
+        <span class="badge"><i class="fas fa-lock"></i> private • 2026</span>
+    </div>
+
+    <!-- DROP ZONE -->
+    <div class="drop-zone" id="dropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Seret & lepas foto di sini</p>
+        <span>atau klik untuk pilih file (bisa banyak)</span>
+        <input type="file" id="fileInput" multiple accept="image/*">
+    </div>
+
+    <!-- FILE LIST -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- BOT SELECTOR -->
+    <div style="font-weight: 500; font-size: 0.85rem; margin-bottom: 0.4rem; color: #94a3b8; display: flex; gap: 6px; align-items: center;">
+        <i class="fas fa-robot" style="color: #38bdf8;"></i> Pilih bot tujuan:
+    </div>
+    <div class="bot-grid" id="botGrid">
+        <!-- JAZZY -->
+        <div class="bot-card selected" data-bot="JAZZY" data-token="8928873897:AAHcA-01PGlVbzb3MHyn9bz3Ya8ukjmOp-A">
+            <div class="check-mark"><i class="fas fa-check-circle"></i></div>
+            <div class="bot-icon">🤖</div>
+            <div class="bot-name">JAZZY</div>
+            <div class="bot-token">8928873897:AAHc...</div>
+        </div>
+        <!-- MAXINE -->
+        <div class="bot-card" data-bot="MAXINE" data-token="8636391308:AAFpR6R5psBUbAZni7YoWTAZyRfWqVvsxko">
+            <div class="check-mark"><i class="fas fa-check-circle"></i></div>
+            <div class="bot-icon">🧠</div>
+            <div class="bot-name">MAXINE</div>
+            <div class="bot-token">8636391308:AAFp...</div>
+        </div>
+        <!-- EKIN -->
+        <div class="bot-card" data-bot="EKIN" data-token="8888335091:AAFkwIi2lxqBH4pYGD3PVwny_oNevwPVHlE">
+            <div class="check-mark"><i class="fas fa-check-circle"></i></div>
+            <div class="bot-icon">✨</div>
+            <div class="bot-name">EKIN</div>
+            <div class="bot-token">8888335091:AAFk...</div>
+        </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-bar">
+        <button class="btn-primary" id="sendBtn" disabled>
+            <i class="fas fa-paper-plane"></i> Kirim ke Telegram
+        </button>
+        <button class="btn-secondary" id="clearBtn">
+            <i class="fas fa-trash-alt"></i> Hapus semua file
+        </button>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-box" id="statusBox">
+        <i class="fas fa-info-circle status-icon"></i>
+        <div class="status-text" id="statusText">Pilih foto & bot, lalu kirim</div>
+    </div>
+
+    <div class="footer-credit">
+        <i class="fas fa-crown"></i> DansFaye Lee · Private Message 2026 <i class="fas fa-crown"></i>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ----- ELEMENTS -----
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusText = document.getElementById('statusText');
+        const statusIcon = document.querySelector('.status-icon');
+        const botCards = document.querySelectorAll('.bot-card');
+
+        // ----- STATE -----
+        let selectedFiles = [];          // array of File objects
+        let selectedBot = {
+            name: 'JAZZY',
+            token: '8928873897:AAHcA-01PGlVbzb3MHyn9bz3Ya8ukjmOp-A'
+        };
+        const TELEGRAM_CHAT_ID = '8712676365';
+
+        // ----- BOT SELECTION -----
+        botCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                botCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                const botName = this.dataset.bot;
+                const botToken = this.dataset.token;
+                selectedBot.name = botName;
+                selectedBot.token = botToken;
+                updateStatus(`Bot: ${botName}`, 'info');
+                checkSendable();
+            });
+        });
+
+        // ----- FILE HANDLING (via drop & click) -----
+        function addFiles(fileListFromInput) {
+            const filesArray = Array.from(fileListFromInput).filter(f => f.type.startsWith('image/'));
+            if (filesArray.length === 0) {
+                updateStatus('Hanya file gambar yang didukung', 'warning');
+                return;
+            }
+            // tambahkan tanpa duplikat (by name & size)
+            const existingNames = new Set(selectedFiles.map(f => f.name + f.size));
+            let added = 0;
+            filesArray.forEach(file => {
+                const key = file.name + file.size;
+                if (!existingNames.has(key)) {
+                    selectedFiles.push(file);
+                    existingNames.add(key);
+                    added++;
+                }
+            });
+            if (added === 0) {
+                updateStatus('Tidak ada file baru (duplikat terdeteksi)', 'info');
+            } else {
+                updateStatus(`${added} file ditambahkan. Total: ${selectedFiles.length}`, 'success');
+            }
+            renderFileTags();
+            checkSendable();
+        }
+
+        // render tags
+        function renderFileTags() {
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '<span style="color:#64748b; font-size:0.75rem; padding:0.4rem 0;">Belum ada foto dipilih</span>';
+                return;
+            }
+            let html = '';
+            selectedFiles.forEach((file, index) => {
+                const sizeKB = (file.size / 1024).toFixed(1);
+                html += `<div class="file-tag">
+                    <i class="fas fa-image" style="color:#38bdf8;"></i> 
+                    ${file.name.substring(0, 18)}${file.name.length>18?'…':''} 
+                    <span style="color:#94a3b8; font-weight:400;">(${sizeKB}KB)</span>
+                    <i class="fas fa-times" data-index="${index}"></i>
+                </div>`;
+            });
+            fileList.innerHTML = html;
+
+            // event remove
+            document.querySelectorAll('.file-tag i.fa-times').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.index);
+                    if (!isNaN(idx) && idx >= 0 && idx < selectedFiles.length) {
+                        selectedFiles.splice(idx, 1);
+                        renderFileTags();
+                        checkSendable();
+                        updateStatus(`File dihapus. Tersisa ${selectedFiles.length}`, 'info');
+                        if (selectedFiles.length === 0) {
+                            updateStatus('Belum ada foto', 'info');
+                        }
+                    }
+                });
+            });
+        }
+
+        // ----- UI DROP / CLICK -----
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                addFiles(e.dataTransfer.files);
+                fileInput.value = ''; // reset
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length) {
+                addFiles(this.files);
+                this.value = ''; // reset agar bisa pilih file yang sama lagi
+            }
+        });
+
+        // ----- CLEAR -----
+        clearBtn.addEventListener('click', function() {
+            if (selectedFiles.length === 0) {
+                updateStatus('Tidak ada file untuk dihapus', 'info');
+                return;
+            }
+            selectedFiles = [];
+            renderFileTags();
+            checkSendable();
+            updateStatus('Semua file dihapus', 'info');
+        });
+
+        // ----- SEND TO TELEGRAM -----
+        sendBtn.addEventListener('click', async function() {
+            if (selectedFiles.length === 0 || !selectedBot.token) {
+                updateStatus('Pilih foto dan bot terlebih dahulu', 'warning');
+                return;
+            }
+
+            // disable button
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span> Mengirim...';
+            updateStatus(`Mengirim ${selectedFiles.length} foto ke @${selectedBot.name} ...`, 'loading');
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', file);
+
+                try {
+                    const url = `https://api.telegram.org/bot${selectedBot.token}/sendPhoto`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                        console.warn('Telegram error:', data);
+                    }
+                } catch (error) {
+                    failCount++;
+                    console.error('Network error:', error);
+                }
+                // update status tiap 5 file atau terakhir
+                if (i % 3 === 0 || i === selectedFiles.length - 1) {
+                    updateStatus(`Mengirim... ${i+1}/${selectedFiles.length}`, 'loading');
+                }
+            }
+
+            // selesai
+            let msg = '';
+            if (successCount > 0 && failCount === 0) {
+                msg = `✅ ${successCount} foto berhasil dikirim ke @${selectedBot.name}!`;
+                statusIcon.className = 'fas fa-check-circle status-icon';
+                statusIcon.style.color = '#4ade80';
+            } else if (successCount > 0 && failCount > 0) {
+                msg = `⚠️ ${successCount} terkirim, ${failCount} gagal ke @${selectedBot.name}. Cek token/chat ID.`;
+                statusIcon.className = 'fas fa-exclamation-triangle status-icon';
+                statusIcon.style.color = '#facc15';
+            } else {
+                msg = `❌ Gagal mengirim ke @${selectedBot.name}. Periksa token atau koneksi.`;
+                statusIcon.className = 'fas fa-times-circle status-icon';
+                statusIcon.style.color = '#f87171';
+            }
+            updateStatus(msg, 'done');
+
+            // reset button
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim ke Telegram';
+
+            // jika sukses semua, bersihkan file?
+            if (successCount > 0 && failCount === 0) {
+                // optional: hapus file setelah sukses
+                // selectedFiles = [];
+                // renderFileTags();
+                // checkSendable();
+                // updateStatus('File telah dikirim!', 'success');
+            }
+        });
+
+        // ----- UTILITY -----
+        function checkSendable() {
+            const hasFiles = selectedFiles.length > 0;
+            const hasBot = !!selectedBot.token;
+            sendBtn.disabled = !(hasFiles && hasBot);
+            if (!hasFiles) {
+                // updateStatus('Tambahkan foto terlebih dahulu', 'info');
+            }
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusText.textContent = message;
+            // reset icon style
+            statusIcon.style.color = '#38bdf8';
+            if (type === 'warning') {
+                statusIcon.className = 'fas fa-exclamation-circle status-icon';
+                statusIcon.style.color = '#facc15';
+            } else if (type === 'loading') {
+                statusIcon.className = 'fas fa-spinner fa-pulse status-icon';
+                statusIcon.style.color = '#38bdf8';
+            } else if (type === 'success' || type === 'done') {
+                statusIcon.className = 'fas fa-check-circle status-icon';
+                statusIcon.style.color = '#4ade80';
+            } else if (type === 'error') {
+                statusIcon.className = 'fas fa-times-circle status-icon';
+                statusIcon.style.color = '#f87171';
+            } else {
+                statusIcon.className = 'fas fa-info-circle status-icon';
+                statusIcon.style.color = '#38bdf8';
+            }
+        }
+
+        // inisialisasi
+        renderFileTags();
+        updateStatus('Pilih foto & bot, lalu kirim', 'info');
+        checkSendable();
+
+        // set default bot selected
+        document.querySelector('.bot-card.selected')?.classList.add('selected');
+
+        // additional: jika klik bot, update status
+        botCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const name = this.dataset.bot;
+                updateStatus(`Bot dipilih: ${name}`, 'info');
+                checkSendable();
+            });
+        });
+
+        // handle jika window lepas
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('drop', (e) => e.preventDefault());
+
+    })();
+</script>
+</body>
+</html>
